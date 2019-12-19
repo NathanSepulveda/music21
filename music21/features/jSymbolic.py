@@ -1093,6 +1093,38 @@ class PitchClassVarietyFeature(featuresModule.FeatureExtractor):
             if count >= 1:
                 post += 1
         self.feature.vector[0] = post
+        
+class PentatonicicsmRatioFeature(featuresModule.FeatureExtractor):
+    '''
+    Ratio of notes that are in the C pentatonic scale. Currently must be
+    transposed first.
+
+    >>> s = corpus.parse('bwv66.6')
+    >>> fe = features.jSymbolic.PitchClassVarietyFeature(s)
+    >>> fe.extract().vector
+    [10]
+    '''
+    id = 'P26'
+
+    def __init__(self, dataOrStream=None, *arguments, **keywords):
+        super().__init__(dataOrStream=dataOrStream, *arguments, **keywords)
+
+        self.name = 'Pentatonicism Ratio'
+        self.description = 'Ratio of notes that are in the C pentatonic scale. Currently must be transposed first'
+        self.isSequential = True
+        self.dimensions = 1
+
+    def process(self):
+        '''Do processing necessary, storing result in feature.
+        '''
+        histo = self.data['pitches.pitchClassHistogram']
+        pentatonicPitchClasses = [0, 2, 4, 7, 9]
+        post = 0
+        pcCount = sum(histo)
+        for i, pitchClass in enumerate(histo):
+            if pitchClass in pentatonicPitchClasses:
+                post += 1
+        self.feature.vector[0] = post/ float(pcCount)
 
 
 class RangeFeature(featuresModule.FeatureExtractor):
