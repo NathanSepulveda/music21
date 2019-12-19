@@ -1180,8 +1180,37 @@ class PrimaryRegisterFeature(featuresModule.FeatureExtractor):
         Do processing necessary, storing result in feature.
         '''
         histo = self.data['pitches']
-        print("did it!")
         self.feature.vector[0] = statistics.mean([p.ps for p in histo])
+
+class MedianRegisterFeature(featuresModule.FeatureExtractor):
+    '''
+    Median MIDI pitch.
+
+    >>> s = corpus.parse('bwv66.6')
+    >>> fe = features.jSymbolic.PrimaryRegisterFeature(s)
+    >>> fe.extract().vector
+    [61.12...]
+    '''
+    id = 'P12.5'
+
+    def __init__(self, dataOrStream=None, *arguments, **keywords):
+        super().__init__(dataOrStream=dataOrStream, *arguments, **keywords)
+
+        self.name = 'Median Register'
+        self.description = 'Median MIDI pitch.'
+        self.isSequential = True
+        self.dimensions = 1
+        self.discrete = False
+
+    def process(self):
+        '''
+        Do processing necessary, storing result in feature.
+        '''
+        histo = self.data['pitches']
+        print(self.data)
+        self.feature.vector[0] = statistics.median([p.ps for p in histo])
+        
+        
 
 
 class ImportanceOfBassRegisterFeature(featuresModule.FeatureExtractor):
