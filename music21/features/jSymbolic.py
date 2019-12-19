@@ -1180,6 +1180,7 @@ class PrimaryRegisterFeature(featuresModule.FeatureExtractor):
         Do processing necessary, storing result in feature.
         '''
         histo = self.data['pitches']
+        print("did it!")
         self.feature.vector[0] = statistics.mean([p.ps for p in histo])
 
 
