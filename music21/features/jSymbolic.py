@@ -1099,13 +1099,8 @@ class PentatonicicsmRatioFeature(featuresModule.FeatureExtractor):
     Ratio of notes that are in the C pentatonic scale. Currently must be
     transposed first.
 
-    >>> s = corpus.parse('bwv66.6')
-    >>> fe = features.jSymbolic.PitchClassVarietyFeature(s)
-    >>> fe.extract().vector
-    [10]
-    '''
     id = 'P26'
-
+    '''
     def __init__(self, dataOrStream=None, *arguments, **keywords):
         super().__init__(dataOrStream=dataOrStream, *arguments, **keywords)
 
@@ -1117,12 +1112,12 @@ class PentatonicicsmRatioFeature(featuresModule.FeatureExtractor):
     def process(self):
         '''Do processing necessary, storing result in feature.
         '''
-        histo = self.data['pitches.pitchClassHistogram']
+        histo = self.data['pitches']
         pentatonicPitchClasses = [0, 2, 4, 7, 9]
         post = 0
-        pcCount = sum(histo)
-        for i, pitchClass in enumerate(histo):
-            if pitchClass in pentatonicPitchClasses:
+        pcCount = sum(self.data['pitches.pitchClassHistogram'])
+        for i, pitch in enumerate(histo):
+            if pitch.pitchClass in pentatonicPitchClasses:
                 post += 1
         self.feature.vector[0] = post/ float(pcCount)
 
