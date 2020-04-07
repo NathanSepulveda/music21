@@ -127,6 +127,32 @@ class MostCommonMelodicIntervalFeature(featuresModule.FeatureExtractor):
         maxValue = max(histo)
         maxIndex = histo.index(maxValue)
         self.feature.vector[0] = maxIndex
+        
+class IntervalStandardDeviationFeature(featuresModule.FeatureExtractor):
+
+    id = 'P3.5'
+
+    def __init__(self, dataOrStream=None, *arguments, **keywords):
+        super().__init__(dataOrStream=dataOrStream, *arguments, **keywords)
+
+        self.name = 'Interval Standard Deviation'
+        self.description = 'Standard Deviation Absolute Interval.'
+        self.isSequential = True
+        self.dimensions = 1
+        self.discrete = False
+
+    def process(self):
+        '''
+        Do processing necessary, storing result in feature.
+        '''
+        ps = self.data['pitches']
+        print(ps, "yeee")
+        absoluteIntervals = []
+        for i, e in enumerate(ps):
+            if i < len(ps) - 1:
+                v = abs(e.midi - ps[i + 1].midi)
+                absoluteIntervals.append(v)
+        self.feature.vector[0] = statistics.pstdev([a for a in absoluteIntervals])
 
 
 class DistanceBetweenMostCommonMelodicIntervalsFeature(
@@ -331,6 +357,7 @@ class RepeatedNotesFeature(featuresModule.FeatureExtractor):
         '''Do processing necessary, storing result in feature.
         '''
         histo = self.data['midiIntervalHistogram']
+
         total = sum(histo)
         if total == 0:
             return  # do nothing
@@ -1236,6 +1263,35 @@ class MedianRegisterFeature(featuresModule.FeatureExtractor):
         histo = self.data['pitches']
         print(self.data)
         self.feature.vector[0] = statistics.median([p.ps for p in histo])
+        
+        
+class MelodicStandardDeviationFeature(featuresModule.FeatureExtractor):
+    '''
+    
+
+    >>> s = corpus.parse('bwv66.6')
+    >>> fe = features.jSymbolic.PrimaryRegisterFeature(s)
+    >>> fe.extract().vector
+    [61.12...]
+    '''
+    id = 'P12.75'
+
+    def __init__(self, dataOrStream=None, *arguments, **keywords):
+        super().__init__(dataOrStream=dataOrStream, *arguments, **keywords)
+
+        self.name = 'Melodic Standard Deviation'
+        self.description = 'Melodic Standard Deviation.'
+        self.isSequential = True
+        self.dimensions = 1
+        self.discrete = False
+
+    def process(self):
+        '''
+        Do processing necessary, storing result in feature.
+        '''
+        histo = self.data['pitches']
+        print(histo)
+        self.feature.vector[0] = statistics.pstdev([p.ps for p in histo])
         
         
 
