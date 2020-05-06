@@ -25,6 +25,10 @@ from music21 import base
 # from music21 import exceptions21
 from music21.features import base as featuresModule
 
+from scipy.stats import entropy
+import pandas as pd
+import math
+
 from music21 import environment
 _MOD = 'features.jSymbolic'
 environLocal = environment.Environment(_MOD)
@@ -146,7 +150,6 @@ class IntervalStandardDeviationFeature(featuresModule.FeatureExtractor):
         Do processing necessary, storing result in feature.
         '''
         ps = self.data['pitches']
-        print(ps, "yeee")
         absoluteIntervals = []
         for i, e in enumerate(ps):
             if i < len(ps) - 1:
@@ -1261,7 +1264,6 @@ class MedianRegisterFeature(featuresModule.FeatureExtractor):
         Do processing necessary, storing result in feature.
         '''
         histo = self.data['pitches']
-        print(self.data)
         self.feature.vector[0] = statistics.median([p.ps for p in histo])
         
         
@@ -1290,7 +1292,6 @@ class MelodicStandardDeviationFeature(featuresModule.FeatureExtractor):
         Do processing necessary, storing result in feature.
         '''
         histo = self.data['pitches']
-        print(histo)
         self.feature.vector[0] = statistics.pstdev([p.ps for p in histo])
         
         
@@ -2240,6 +2241,7 @@ class AverageNoteDurationFeature(featuresModule.FeatureExtractor):
 
     def process(self):
         secondsMap = self.data['flat.secondsMap']
+        print(secondsMap)
         total = 0.0
         for bundle in secondsMap:
             total += bundle['durationSeconds']
@@ -2452,6 +2454,45 @@ class VariabilityOfTimeBetweenAttacksFeature(featuresModule.FeatureExtractor):
             if not common.almostEquals(dif, 0.0):
                 differences.append(dif)
         self.feature.vector[0] = statistics.pstdev(differences)
+
+class DurationEntropyFeature(featuresModule.FeatureExtractor):
+    '''
+    Duration entropy 
+    '''
+
+    id = 'R23.5'
+
+    def __init__(self, dataOrStream=None, *arguments, **keywords):
+        super().__init__(dataOrStream=dataOrStream, *arguments, **keywords)
+
+        self.name = 'Variability of Time Between Attacks'
+        self.description = ('Standard deviation of the times, in seconds, '
+                            'between Note On events (regardless of channel).')
+        self.isSequential = True
+        self.dimensions = 1
+
+    def process(self):
+        secondsMap = self.data['flat.secondsMap']
+        # Create a list of difference in time offset between consecutive notes
+        onsets = [bundle['offsetSeconds'] for bundle in secondsMap]
+        lastDuration = secondsMap[-1]["durationSeconds"]
+        onsets.sort()  # may already be sorted?
+        differences = []
+        for i, o in enumerate(onsets):
+            if i == len(onsets) - 1:  # stop before the last
+                break
+            oNext = onsets[i + 1]
+            # Don't include simultaneous attacks
+            dif = oNext - o
+            if not common.almostEquals(dif, 0.0):
+                differences.append(dif)
+        differences.append(lastDuration)
+        pd_series = pd.Series(differences)
+        counts = pd_series.value_counts()
+    # print(counts)
+        ent = entropy(counts, base=2)
+        
+        self.feature.vector[0] = ent/math.log(24, 2)
 
 
 class AverageTimeBetweenAttacksForEachVoiceFeature(
